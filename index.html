@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mambosawa.com - Buy & Sell Second-Hand Goods in Tanzania</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B00',
+                        secondary: '#0056B3',
+                        accent: '#FFD700',
+                        dark: '#1A1A1A',
+                        light: '#F5F5F5',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .drawer {
+            transition: transform 0.3s ease-in-out;
+        }
+        .drawer.closed {
+            transform: translateX(100%);
+        }
+        .listing-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .image-gallery {
+            scrollbar-width: none;
+        }
+        .image-gallery::-webkit-scrollbar {
+            display: none;
+        }
+        .category-icon {
+            transition: all 0.2s ease;
+        }
+        .category-icon:hover {
+            transform: scale(1.1);
+        }
+        .skeleton {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-dark">
+    <!-- PWA Install Prompt (hidden by default) -->
+    <div id="installPrompt" class="hidden fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg z-50">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <img src="/images/icon.png" alt="mambosawa logo" class="w-12 h-12 mr-3 rounded">
+                <div>
+                    <p class="font-bold">Install mambosawa</p>
+                    <p class="text-sm text-gray-600">Get the best experience with our app</p>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <button id="cancelInstall" class="px-4 py-2 text-gray-600">Not Now</button>
+                <button id="installButton" class="px-4 py-2 bg-primary text-white rounded">Install</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-40 bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <button id="menuButton" class="mr-4 md:hidden">
+                        <i class="fas fa-bars text-2xl text-primary"></i>
+                    </button>
+                    <a href="#" class="flex items-center">
+                        <img src="/images/icon.png" alt="mambosawa logo" class="h-10 w-10 mr-2">
+                        <span class="text-xl font-bold text-primary">mambosawa</span>
+                    </a>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 mx-6">
+                    <div class="relative w-full max-w-xl">
+                        <input type="text" placeholder="Search for items..." 
+                            class="w-full py-2 px-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <button class="absolute right-0 top-0 h-full px-4 text-gray-500">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- User Actions -->
+                <div class="flex items-center space-x-4">
+                    <button class="md:hidden">
+                        <i class="fas fa-search text-xl text-gray-600"></i>
+                    </button>
+                    <button id="languageToggle" class="hidden md:block px-3 py-1 text-sm border rounded-full">
+                        EN/SW
+                    </button>
+                    <button id="authButton" class="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium">
+                        Sign In
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Search (hidden by default) -->
+            <div id="mobileSearch" class="mt-3 hidden">
+                <div class="relative">
+                    <input type="text" placeholder="Search for items..." 
+                        class="w-full py-2 px-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <button class="absolute right-0 top-0 h-full px-4 text-gray-500">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Drawer -->
+    <div id="mobileMenu" class="drawer fixed inset-0 z-50 bg-white overflow-y-auto closed">
+        <div class="p-4">
+            <div class="flex justify-between items-center mb-6">
+                <img src="https://via.placeholder.com/40" alt="mambosawa logo" class="h-10 w-10">
+                <button id="closeMenuButton" class="text-2xl text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <button class="w-full bg-primary text-white py-3 rounded-lg font-medium">
+                    Sign In / Register
+                </button>
+            </div>
+            
+            <nav>
+                <ul class="space-y-4">
+                    <li><a href="#" class="block py-2 font-medium">Home</a></li>
+                    <li><a href="#" class="block py-2 font-medium">My Listings</a></li>
+                    <li><a href="#" class="block py-2 font-medium">Favorites</a></li>
+                    <li><a href="#" class="block py-2 font-medium">Messages</a></li>
+                    <li><a href="#" class="block py-2 font-medium">Notifications</a></li>
+                    <li><a href="#" class="block py-2 font-medium">Settings</a></li>
+                    <li><a href="#" class="block py-2 font-medium">Help</a></li>
+                </ul>
+            </nav>
+            
+            <div class="mt-8 pt-4 border-t">
+                <button class="flex items-center space-x-2">
+                    <span>English</span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Hero Section -->
+        <section class="mb-8 bg-gradient-to-r from-primary to-accent rounded-xl p-6 text-white">
+            <div class="max-w-2xl">
+                <h1 class="text-3xl md:text-4xl font-bold mb-4">Buy & Sell Second-Hand Goods in Tanzania</h1>
+                <p class="text-lg mb-6">Find great deals on books, electronics, furniture and more in Dar es Salaam, Arusha, Moshi and other cities.</p>
+                <div class="flex flex-wrap gap-3">
+                    <button class="bg-white text-primary px-6 py-3 rounded-full font-medium">Browse Listings</button>
+                    <button class="border-2 border-white text-white px-6 py-3 rounded-full font-medium">Sell an Item</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Categories -->
+        <section class="mb-8">
+            <h2 class="text-xl font-bold mb-4">Popular Categories</h2>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
+                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
+                        <i class="fas fa-book text-xl"></i>
+                    </div>
+                    <p class="font-medium text-sm">Books</p>
+                </a>
+                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
+                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
+                        <i class="fas fa-laptop text-xl"></i>
+                    </div>
+                    <p class="font-medium text-sm">Electronics</p>
+                </a>
+                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
+                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
+                        <i class="fas fa-tshirt text-xl"></i>
+                    </div>
+                    <p class="font-medium text-sm">Clothing</p>
+                </a>
+                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
+                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
+                        <i class="fas fa-couch text-xl"></i>
+                    </div>
+                    <p class="font-medium text-sm">Furniture</p>
+                </a>
+                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
+                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
+                        <i class="fas fa-gamepad text-xl"></i>
+                    </div>
+                    <p class="font-medium text-sm">Games</p>
+                </a>
+                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
+                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
+                        <i class="fas fa-baby-carriage text-xl"></i>
+                    </div>
+                    <p class="font-medium text-sm">Baby Items</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Location Selector -->
+        <section class="mb-8">
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h2 class="text-xl font-bold mb-4">Select Your Location</h2>
+                <div class="flex flex-wrap gap-2">
+                    <button class="px-4 py-2 bg-primary text-white rounded-full text-sm">Dar es Salaam</button>
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Arusha</button>
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Moshi</button>
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Mbeya</button>
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Dodoma</button>
+                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Mwanza</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Listings -->
+        <section class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Featured Listings</h2>
+                <a href="#" class="text-primary font-medium">See All</a>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Listing Card 1 -->
+                <div class="listing-card bg-white rounded-lg overflow-hidden shadow-sm transition duration-300">
+                    <div class="relative">
+                        <div class="image-gallery h-48 bg-gray-200 flex overflow-x-auto snap-mandatory snap-x">
+                            <img src="/images/physics.png" alt="Textbook" class="w-full h-full object-cover snap-center">
+                            <img src="/images/physics2.png" alt="Textbook" class="w-full h-full object-cover snap-center">
+                            <img src="https://via.placeholder.com/300x200?text=Textbook+3" alt="Textbook" class="w-full h-full object-cover snap-center">
+                        </div>
+                        <div class="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded">
+                            Featured
+                        </div>
+                        <button class="absolute top-2 right-2 bg-white/80 text-gray-800 p-2 rounded-full">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-lg truncate">Form 4 Physics Textbook</h3>
+                            <span class="text-primary font-bold">TZS 25,000</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            <span>Mikocheni, Dar es Salaam</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">Excellent condition Form 4 Physics textbook. Barely used with no markings inside. Perfect for students preparing for national exams.</p>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500">Today, 10:30</span>
+                            <button class="text-primary font-medium">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Card 2 -->
+                <div class="listing-card bg-white rounded-lg overflow-hidden shadow-sm transition duration-300">
+                    <div class="relative">
+                        <div class="image-gallery h-48 bg-gray-200 flex overflow-x-auto snap-mandatory snap-x">
+                            <img src="/images/iphone1.png" alt="iPhone" class="w-full h-full object-cover snap-center">
+                        </div>
+                        <button class="absolute top-2 right-2 bg-white/80 text-gray-800 p-2 rounded-full">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-lg truncate">iPhone 12 Pro Max</h3>
+                            <span class="text-primary font-bold">TZS 1,250,000</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            <span>Arusha CBD</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">iPhone 12 Pro Max 256GB in excellent condition. Comes with original box and accessories. Battery health 92%.</p>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500">Yesterday, 15:45</span>
+                            <button class="text-primary font-medium">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Card 3 -->
+                <div class="listing-card bg-white rounded-lg overflow-hidden shadow-sm transition duration-300">
+                    <div class="relative">
+                        <div class="image-gallery h-48 bg-gray-200 flex overflow-x-auto snap-mandatory snap-x">
+                            <img src="/images/leather sofa.jpeg" alt="Sofa" class="w-full h-full object-cover snap-center">
+                            <img src="/images/sofa.png" alt="Sofa" class="w-full h-full object-cover snap-center">
+                        </div>
+                        <div class="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded">
+                            Featured
+                        </div>
+                        <button class="absolute top-2 right-2 bg-white/80 text-gray-800 p-2 rounded-full">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-lg truncate">3-Seater Leather Sofa</h3>
+                            <span class="text-primary font-bold">TZS 450,000</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            <span>Moshi Town</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">High quality genuine leather sofa in excellent condition. Very comfortable and stylish. Selling because of relocation.</p>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500">2 days ago</span>
+                            <button class="text-primary font-medium">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Listing Card 4 -->
+                <div class="listing-card bg-white rounded-lg overflow-hidden shadow-sm transition duration-300">
+                    <div class="relative">
+                        <div class="image-gallery h-48 bg-gray-200 flex overflow-x-auto snap-mandatory snap-x">
+                            <img src="/images/PS5.png" alt="PS5" class="w-full h-full object-cover snap-center">
+                            <!-- <img src="https://via.placeholder.com/300x200?text=PS5+2" alt="PS5" class="w-full h-full object-cover snap-center">
+                            <img src="https://via.placeholder.com/300x200?text=PS5+3" alt="PS5" class="w-full h-full object-cover snap-center">
+                            <img src="https://via.placeholder.com/300x200?text=PS5+4" alt="PS5" class="w-full h-full object-cover snap-center"> -->
+                        </div>
+                        <button class="absolute top-2 right-2 bg-white/80 text-gray-800 p-2 rounded-full">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-lg truncate">PlayStation 5 with 3 Games</h3>
+                            <span class="text-primary font-bold">TZS 1,800,000</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 mb-2">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            <span>Masaki, Dar es Salaam</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">PS5 console in perfect condition with 2 controllers and 3 games (FIFA 23, God of War Ragnarok, Spider-Man Miles Morales).</p>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500">3 days ago</span>
+                            <button class="text-primary font-medium">Contact Seller</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="mb-8 bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-xl font-bold mb-6 text-center">How mambosawa Works</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="bg-primary/10 text-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-search text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold mb-2">1. Find What You Need</h3>
+                    <p class="text-gray-600">Browse thousands of listings or use our powerful search to find exactly what you're looking for.</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-primary/10 text-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-comment-dots text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold mb-2">2. Contact the Seller</h3>
+                    <p class="text-gray-600">Use WhatsApp or call directly to ask questions and negotiate the price.</p>
+                </div>
+                <div class="text-center">
+                    <div class="bg-primary/10 text-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-handshake text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold mb-2">3. Meet & Complete</h3>
+                    <p class="text-gray-600">Arrange to meet in a safe public place and complete your transaction.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="mb-8 bg-primary/5 p-6 rounded-lg text-center">
+            <h2 class="text-2xl font-bold mb-4">Have something to sell?</h2>
+            <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Join thousands of sellers who are making money by clearing out their unused items.</p>
+            <button class="bg-primary text-white px-6 py-3 rounded-full font-medium">Post a Listing for Free</button>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">mambosawa</h3>
+                    <p class="text-gray-400">The best place to buy and sell second-hand goods in Tanzania.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Browse Listings</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Sell an Item</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">My Account</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Help</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Safety Tips</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">FAQs</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Download Our App</h3>
+                    <div class="space-y-3">
+                        <button class="flex items-center bg-black text-white px-4 py-2 rounded w-full">
+                            <i class="fab fa-apple text-2xl mr-2"></i>
+                            <div class="text-left">
+                                <div class="text-xs">Download on the</div>
+                                <div class="font-medium">App Store</div>
+                            </div>
+                        </button>
+                        <button class="flex items-center bg-black text-white px-4 py-2 rounded w-full">
+                            <i class="fab fa-google-play text-2xl mr-2"></i>
+                            <div class="text-left">
+                                <div class="text-xs">Get it on</div>
+                                <div class="font-medium">Google Play</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-6 text-center text-gray-400">
+                <p>&copy; 2023 mambosawa.com. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Contact Seller Modal -->
+    <div id="contactModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-4 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-lg">Contact Seller</h3>
+                    <button id="closeContactModal" class="text-gray-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="flex items-center mb-4">
+                    <img src="https://via.placeholder.com/50" alt="Seller" class="w-12 h-12 rounded-full mr-3">
+                    <div>
+                        <h4 class="font-medium">John M.</h4>
+                        <p class="text-sm text-gray-500">Mikocheni, Dar es Salaam</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <button class="w-full flex items-center justify-center bg-green-600 text-white py-3 rounded-lg">
+                        <i class="fab fa-whatsapp mr-2 text-xl"></i>
+                        WhatsApp Seller
+                    </button>
+                    <button class="w-full flex items-center justify-center bg-blue-600 text-white py-3 rounded-lg">
+                        <i class="fas fa-phone mr-2"></i>
+                        Call Seller (0712 345 678)
+                    </button>
+                    <button class="w-full flex items-center justify-center bg-gray-100 text-gray-800 py-3 rounded-lg">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Send SMS
+                    </button>
+                </div>
+                <div class="mt-4 text-sm text-gray-500">
+                    <p><i class="fas fa-info-circle mr-2 text-primary"></i> Always meet in a safe public place</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="p-4 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-lg">Sign In / Register</h3>
+                    <button id="closeAuthModal" class="text-gray-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="flex border-b mb-4">
+                    <button id="loginTab" class="px-4 py-2 font-medium border-b-2 border-primary text-primary">Sign In</button>
+                    <button id="registerTab" class="px-4 py-2 font-medium text-gray-500">Register</button>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Email or Phone</label>
+                        <input type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2">Password</label>
+                        <input type="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <a href="#" class="text-sm text-primary mt-1 block">Forgot password?</a>
+                    </div>
+                    <button class="w-full bg-primary text-white py-3 rounded-lg font-medium mb-4">Sign In</button>
+                    <div class="text-center text-sm">
+                        <p class="text-gray-500">Don't have an account? <button id="switchToRegister" class="text-primary">Register</button></p>
+                    </div>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="registerForm" class="hidden">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Full Name</label>
+                        <input type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Email</label>
+                        <input type="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 mb-2">Password</label>
+                        <input type="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <button class="w-full bg-primary text-white py-3 rounded-lg font-medium mb-4">Register</button>
+                    <div class="text-center text-sm">
+                        <p class="text-gray-500">Already have an account? <button id="switchToLogin" class="text-primary">Sign In</button></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile Menu Toggle
+        const menuButton = document.getElementById('menuButton');
+        const closeMenuButton = document.getElementById('closeMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.remove('closed');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        closeMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.add('closed');
+            document.body.style.overflow = '';
+        });
+
+        // Mobile Search Toggle
+        const searchButton = document.querySelector('header button:nth-child(2)');
+        const mobileSearch = document.getElementById('mobileSearch');
+        
+        searchButton.addEventListener('click', () => {
+            mobileSearch.classList.toggle('hidden');
+        });
+
+        // Contact Modal
+        const contactButtons = document.querySelectorAll('.listing-card button:last-child');
+        const contactModal = document.getElementById('contactModal');
+        const closeContactModal = document.getElementById('closeContactModal');
+        
+        contactButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                contactModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+        
+        closeContactModal.addEventListener('click', () => {
+            contactModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        });
+
+        // Auth Modal
+        const authButton = document.getElementById('authButton');
+        const authModal = document.getElementById('authModal');
+        const closeAuthModal = document.getElementById('closeAuthModal');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const switchToRegister = document.getElementById('switchToRegister');
+        const switchToLogin = document.getElementById('switchToLogin');
+        
+        authButton.addEventListener('click', () => {
+            authModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        closeAuthModal.addEventListener('click', () => {
+            authModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        });
+        
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('border-b-2', 'border-primary', 'text-primary');
+            loginTab.classList.remove('text-gray-500');
+            registerTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
+            registerTab.classList.add('text-gray-500');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        });
+        
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('border-b-2', 'border-primary', 'text-primary');
+            registerTab.classList.remove('text-gray-500');
+            loginTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
+            loginTab.classList.add('text-gray-500');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+        
+        switchToRegister.addEventListener('click', () => {
+            registerTab.click();
+        });
+        
+        switchToLogin.addEventListener('click', () => {
+            loginTab.click();
+        });
+
+        // Language Toggle
+        const languageToggle = document.getElementById('languageToggle');
+        let currentLanguage = 'EN';
+        
+        languageToggle.addEventListener('click', () => {
+            currentLanguage = currentLanguage === 'EN' ? 'SW' : 'EN';
+            languageToggle.textContent = currentLanguage === 'EN' ? 'EN/SW' : 'SW/EN';
+            // In a real app, you would update the page content here
+        });
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+        const installButton = document.getElementById('installButton');
+        const cancelInstall = document.getElementById('cancelInstall');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show the install prompt
+            installPrompt.classList.remove('hidden');
+        });
+        
+        installButton.addEventListener('click', async () => {
+            // Hide the install prompt
+            installPrompt.classList.add('hidden');
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            // Optionally, send analytics event with outcome of user choice
+            console.log(`User response to the install prompt: ${outcome}`);
+            // We've used the prompt, and can't use it again, throw it away
+            deferredPrompt = null;
+        });
+        
+        cancelInstall.addEventListener('click', () => {
+            installPrompt.classList.add('hidden');
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            // Hide the install prompt
+            installPrompt.classList.add('hidden');
+            // Clear the deferredPrompt so it can be garbage collected
+            deferredPrompt = null;
+            // Optionally, send analytics event to indicate successful install
+            console.log('PWA was installed');
+        });
+
+        // Image Gallery Navigation
+        document.querySelectorAll('.image-gallery').forEach(gallery => {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            gallery.addEventListener('mousedown', (e) => {
+                isDown = true;
+                startX = e.pageX - gallery.offsetLeft;
+                scrollLeft = gallery.scrollLeft;
+            });
+
+            gallery.addEventListener('mouseleave', () => {
+                isDown = false;
+            });
+
+            gallery.addEventListener('mouseup', () => {
+                isDown = false;
+            });
+
+            gallery.addEventListener('mousemove', (e) => {
+                if(!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - gallery.offsetLeft;
+                const walk = (x - startX) * 2;
+                gallery.scrollLeft = scrollLeft - walk;
+            });
+        });
+    </script>
+</body>
+</html>
