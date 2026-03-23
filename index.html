@@ -3,726 +3,1028 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mambosawa.com - Buy & Sell Second-Hand Goods in Tanzania</title>
+    <title>MamboSawa Market | Smart ecommerce for Tanzania</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         primary: '#FF6B00',
-                        secondary: '#0056B3',
-                        accent: '#FFD700',
-                        dark: '#1A1A1A',
-                        light: '#F5F5F5',
+                        secondary: '#0F172A',
+                        accent: '#22C55E',
+                        sand: '#FFF7ED'
+                    },
+                    boxShadow: {
+                        soft: '0 12px 40px rgba(15, 23, 42, 0.08)'
                     }
                 }
             }
-        }
+        };
     </script>
     <style>
-        .drawer {
-            transition: transform 0.3s ease-in-out;
+        .drawer-transition { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
-        .drawer.closed {
-            transform: translateX(100%);
+        input[type='range']::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            background: #FF6B00;
+            cursor: pointer;
         }
-        .listing-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        .image-gallery {
-            scrollbar-width: none;
-        }
-        .image-gallery::-webkit-scrollbar {
-            display: none;
-        }
-        .category-icon {
-            transition: all 0.2s ease;
-        }
-        .category-icon:hover {
-            transform: scale(1.1);
-        }
-        .skeleton {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
+        input[type='range']::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 9999px;
+            background: #FF6B00;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="bg-gray-50 font-sans text-dark">
-    <!-- PWA Install Prompt (hidden by default) -->
-    <div id="installPrompt" class="hidden fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg z-50">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <img src="/images/icon.png" alt="mambosawa logo" class="w-12 h-12 mr-3 rounded">
-                <div>
-                    <p class="font-bold">Install mambosawa</p>
-                    <p class="text-sm text-gray-600">Get the best experience with our app</p>
-                </div>
-            </div>
-            <div class="flex space-x-2">
-                <button id="cancelInstall" class="px-4 py-2 text-gray-600">Not Now</button>
-                <button id="installButton" class="px-4 py-2 bg-primary text-white rounded">Install</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Header -->
-    <header class="sticky top-0 z-40 bg-white shadow-sm">
-        <div class="container mx-auto px-4 py-3">
-            <div class="flex items-center justify-between">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <button id="menuButton" class="mr-4 md:hidden">
-                        <i class="fas fa-bars text-2xl text-primary"></i>
-                    </button>
-                    <a href="#" class="flex items-center">
-                        <img src="/images/icon.png" alt="mambosawa logo" class="h-10 w-10 mr-2">
-                        <span class="text-xl font-bold text-primary">mambosawa</span>
-                    </a>
-                </div>
-
-                <!-- Search Bar -->
-                <div class="hidden md:flex flex-1 mx-6">
-                    <div class="relative w-full max-w-xl">
-                        <input type="text" placeholder="Search for items..." 
-                            class="w-full py-2 px-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                        <button class="absolute right-0 top-0 h-full px-4 text-gray-500">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- User Actions -->
-                <div class="flex items-center space-x-4">
-                    <button class="md:hidden">
-                        <i class="fas fa-search text-xl text-gray-600"></i>
-                    </button>
-                    <button id="languageToggle" class="hidden md:block px-3 py-1 text-sm border rounded-full">
-                        EN/SW
-                    </button>
-                    <button id="authButton" class="bg-primary text-white px-4 py-2 rounded-full text-sm font-medium">
-                        Sign In
-                    </button>
-                </div>
-            </div>
-
-            <!-- Mobile Search (hidden by default) -->
-            <div id="mobileSearch" class="mt-3 hidden">
-                <div class="relative">
-                    <input type="text" placeholder="Search for items..." 
-                        class="w-full py-2 px-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <button class="absolute right-0 top-0 h-full px-4 text-gray-500">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Mobile Menu Drawer -->
-    <div id="mobileMenu" class="drawer fixed inset-0 z-50 bg-white overflow-y-auto closed">
-        <div class="p-4">
-            <div class="flex justify-between items-center mb-6">
-                <img src="https://via.placeholder.com/40" alt="mambosawa logo" class="h-10 w-10">
-                <button id="closeMenuButton" class="text-2xl text-gray-500">
-                    <i class="fas fa-times"></i>
+<body class="bg-slate-50 text-slate-900">
+    <div id="app" class="min-h-screen">
+        <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+            <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4 lg:px-6">
+                <button id="menuButton" class="rounded-full border border-slate-200 p-2 lg:hidden" aria-label="Open menu">
+                    <i class="fas fa-bars text-primary"></i>
                 </button>
-            </div>
-            
-            <div class="mb-6">
-                <button class="w-full bg-primary text-white py-3 rounded-lg font-medium">
-                    Sign In / Register
-                </button>
-            </div>
-            
-            <nav>
-                <ul class="space-y-4">
-                    <li><a href="#" class="block py-2 font-medium">Home</a></li>
-                    <li><a href="#" class="block py-2 font-medium">My Listings</a></li>
-                    <li><a href="#" class="block py-2 font-medium">Favorites</a></li>
-                    <li><a href="#" class="block py-2 font-medium">Messages</a></li>
-                    <li><a href="#" class="block py-2 font-medium">Notifications</a></li>
-                    <li><a href="#" class="block py-2 font-medium">Settings</a></li>
-                    <li><a href="#" class="block py-2 font-medium">Help</a></li>
-                </ul>
-            </nav>
-            
-            <div class="mt-8 pt-4 border-t">
-                <button class="flex items-center space-x-2">
-                    <span>English</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
-        <!-- Hero Section -->
-        <section class="mb-8 bg-gradient-to-r from-primary to-accent rounded-xl p-6 text-white">
-            <div class="max-w-2xl">
-                <h1 class="text-3xl md:text-4xl font-bold mb-4">Buy & Sell Second-Hand Goods in Tanzania</h1>
-                <p class="text-lg mb-6">Find great deals on books, electronics, furniture and more in Dar es Salaam, Arusha, Moshi and other cities.</p>
-                <div class="flex flex-wrap gap-3">
-                    <button class="bg-white text-primary px-6 py-3 rounded-full font-medium">Browse Listings</button>
-                    <button class="border-2 border-white text-white px-6 py-3 rounded-full font-medium">Sell an Item</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Quick Categories -->
-        <section class="mb-8">
-            <h2 class="text-xl font-bold mb-4">Popular Categories</h2>
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
-                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
-                        <i class="fas fa-book text-xl"></i>
-                    </div>
-                    <p class="font-medium text-sm">Books</p>
-                </a>
-                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
-                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
-                        <i class="fas fa-laptop text-xl"></i>
-                    </div>
-                    <p class="font-medium text-sm">Electronics</p>
-                </a>
-                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
-                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
-                        <i class="fas fa-tshirt text-xl"></i>
-                    </div>
-                    <p class="font-medium text-sm">Clothing</p>
-                </a>
-                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
-                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
-                        <i class="fas fa-couch text-xl"></i>
-                    </div>
-                    <p class="font-medium text-sm">Furniture</p>
-                </a>
-                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
-                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
-                        <i class="fas fa-gamepad text-xl"></i>
-                    </div>
-                    <p class="font-medium text-sm">Games</p>
-                </a>
-                <a href="#" class="category-card bg-white p-4 rounded-lg shadow-sm text-center hover:shadow-md transition">
-                    <div class="category-icon bg-primary/10 text-primary p-3 rounded-full inline-block mb-2">
-                        <i class="fas fa-baby-carriage text-xl"></i>
-                    </div>
-                    <p class="font-medium text-sm">Baby Items</p>
-                </a>
-            </div>
-        </section>
-
-        <!-- Location Selector -->
-        <section class="mb-8">
-            <div class="bg-white p-4 rounded-lg shadow-sm">
-                <h2 class="text-xl font-bold mb-4">Select Your Location</h2>
-                <div class="flex flex-wrap gap-2">
-                    <button class="px-4 py-2 bg-primary text-white rounded-full text-sm">Dar es Salaam</button>
-                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Arusha</button>
-                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Moshi</button>
-                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Mbeya</button>
-                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Dodoma</button>
-                    <button class="px-4 py-2 bg-gray-100 rounded-full text-sm">Mwanza</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Featured Listings -->
-        <section class="mb-8">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Featured Listings</h2>
-                <a href="#" class="text-primary font-medium">See All</a>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Listing Card 1 -->
-                <div class="listing-card bg-white rounded-lg overflow-hidden shadow-sm transition duration-300">
-                    <div class="relative">
-                        <div class="image-gallery h-48 bg-gray-200 flex overflow-x-auto snap-mandatory snap-x">
-                            <img src="/images/physics.png" alt="Textbook" class="w-full h-full object-cover snap-center">
-                            <img src="/images/physics2.png" alt="Textbook" class="w-full h-full object-cover snap-center">
-                            <img src="https://via.placeholder.com/300x200?text=Textbook+3" alt="Textbook" class="w-full h-full object-cover snap-center">
-                        </div>
-                        <div class="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded">
-                            Featured
-                        </div>
-                        <button class="absolute top-2 right-2 bg-white/80 text-gray-800 p-2 rounded-full">
-                            <i class="far fa-heart"></i>
-                        </button>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-1">
-                            <h3 class="font-bold text-lg truncate">Form 4 Physics Textbook</h3>
-                            <span class="text-primary font-bold">TZS 25,000</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-500 mb-2">
-                            <i class="fas fa-map-marker-alt mr-1"></i>
-                            <span>Mikocheni, Dar es Salaam</span>
-                        </div>
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">Excellent condition Form 4 Physics textbook. Barely used with no markings inside. Perfect for students preparing for national exams.</p>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Today, 10:30</span>
-                            <button class="text-primary font-medium">Contact Seller</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Listing Card 2 -->
-                <div class="listing-card bg-white rounded-lg overflow-hidden shadow-sm transition duration-300">
-                    <div class="relative">
-                        <div class="image-gallery h-48 bg-gray-200 flex overflow-x-auto snap-mandatory snap-x">
-                            <img src="/images/iphone1.png" alt="iPhone" class="w-full h-full object-cover snap-center">
-                        </div>
-                        <button class="absolute top-2 right-2 bg-white/80 text-gray-800 p-2 rounded-full">
-                            <i class="far fa-heart"></i>
-                        </button>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-1">
-                            <h3 class="font-bold text-lg truncate">iPhone 12 Pro Max</h3>
-                            <span class="text-primary font-bold">TZS 1,250,000</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-500 mb-2">
-                            <i class="fas fa-map-marker-alt mr-1"></i>
-                            <span>Arusha CBD</span>
-                        </div>
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">iPhone 12 Pro Max 256GB in excellent condition. Comes with original box and accessories. Battery health 92%.</p>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Yesterday, 15:45</span>
-                            <button class="text-primary font-medium">Contact Seller</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Listing Card 3 -->
-                <div class="listing-card bg-white rounded-lg overflow-hidden shadow-sm transition duration-300">
-                    <div class="relative">
-                        <div class="image-gallery h-48 bg-gray-200 flex overflow-x-auto snap-mandatory snap-x">
-                            <img src="/images/leather sofa.jpeg" alt="Sofa" class="w-full h-full object-cover snap-center">
-                            <img src="/images/sofa.png" alt="Sofa" class="w-full h-full object-cover snap-center">
-                        </div>
-                        <div class="absolute top-2 left-2 bg-primary text-white text-xs px-2 py-1 rounded">
-                            Featured
-                        </div>
-                        <button class="absolute top-2 right-2 bg-white/80 text-gray-800 p-2 rounded-full">
-                            <i class="far fa-heart"></i>
-                        </button>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-1">
-                            <h3 class="font-bold text-lg truncate">3-Seater Leather Sofa</h3>
-                            <span class="text-primary font-bold">TZS 450,000</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-500 mb-2">
-                            <i class="fas fa-map-marker-alt mr-1"></i>
-                            <span>Moshi Town</span>
-                        </div>
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">High quality genuine leather sofa in excellent condition. Very comfortable and stylish. Selling because of relocation.</p>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">2 days ago</span>
-                            <button class="text-primary font-medium">Contact Seller</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Listing Card 4 -->
-                <div class="listing-card bg-white rounded-lg overflow-hidden shadow-sm transition duration-300">
-                    <div class="relative">
-                        <div class="image-gallery h-48 bg-gray-200 flex overflow-x-auto snap-mandatory snap-x">
-                            <img src="/images/PS5.png" alt="PS5" class="w-full h-full object-cover snap-center">
-                            <!-- <img src="https://via.placeholder.com/300x200?text=PS5+2" alt="PS5" class="w-full h-full object-cover snap-center">
-                            <img src="https://via.placeholder.com/300x200?text=PS5+3" alt="PS5" class="w-full h-full object-cover snap-center">
-                            <img src="https://via.placeholder.com/300x200?text=PS5+4" alt="PS5" class="w-full h-full object-cover snap-center"> -->
-                        </div>
-                        <button class="absolute top-2 right-2 bg-white/80 text-gray-800 p-2 rounded-full">
-                            <i class="far fa-heart"></i>
-                        </button>
-                    </div>
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-1">
-                            <h3 class="font-bold text-lg truncate">PlayStation 5 with 3 Games</h3>
-                            <span class="text-primary font-bold">TZS 1,800,000</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-500 mb-2">
-                            <i class="fas fa-map-marker-alt mr-1"></i>
-                            <span>Masaki, Dar es Salaam</span>
-                        </div>
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">PS5 console in perfect condition with 2 controllers and 3 games (FIFA 23, God of War Ragnarok, Spider-Man Miles Morales).</p>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">3 days ago</span>
-                            <button class="text-primary font-medium">Contact Seller</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- How It Works -->
-        <section class="mb-8 bg-white p-6 rounded-lg shadow-sm">
-            <h2 class="text-xl font-bold mb-6 text-center">How mambosawa Works</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="text-center">
-                    <div class="bg-primary/10 text-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-search text-2xl"></i>
-                    </div>
-                    <h3 class="font-bold mb-2">1. Find What You Need</h3>
-                    <p class="text-gray-600">Browse thousands of listings or use our powerful search to find exactly what you're looking for.</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-primary/10 text-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-comment-dots text-2xl"></i>
-                    </div>
-                    <h3 class="font-bold mb-2">2. Contact the Seller</h3>
-                    <p class="text-gray-600">Use WhatsApp or call directly to ask questions and negotiate the price.</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-primary/10 text-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-handshake text-2xl"></i>
-                    </div>
-                    <h3 class="font-bold mb-2">3. Meet & Complete</h3>
-                    <p class="text-gray-600">Arrange to meet in a safe public place and complete your transaction.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Call to Action -->
-        <section class="mb-8 bg-primary/5 p-6 rounded-lg text-center">
-            <h2 class="text-2xl font-bold mb-4">Have something to sell?</h2>
-            <p class="text-gray-600 mb-6 max-w-2xl mx-auto">Join thousands of sellers who are making money by clearing out their unused items.</p>
-            <button class="bg-primary text-white px-6 py-3 rounded-full font-medium">Post a Listing for Free</button>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-8">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-lg font-bold mb-4">mambosawa</h3>
-                    <p class="text-gray-400">The best place to buy and sell second-hand goods in Tanzania.</p>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Browse Listings</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Sell an Item</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">My Account</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Help</h3>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white">Safety Tips</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">FAQs</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Contact Us</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Download Our App</h3>
-                    <div class="space-y-3">
-                        <button class="flex items-center bg-black text-white px-4 py-2 rounded w-full">
-                            <i class="fab fa-apple text-2xl mr-2"></i>
-                            <div class="text-left">
-                                <div class="text-xs">Download on the</div>
-                                <div class="font-medium">App Store</div>
-                            </div>
-                        </button>
-                        <button class="flex items-center bg-black text-white px-4 py-2 rounded w-full">
-                            <i class="fab fa-google-play text-2xl mr-2"></i>
-                            <div class="text-left">
-                                <div class="text-xs">Get it on</div>
-                                <div class="font-medium">Google Play</div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-gray-800 mt-8 pt-6 text-center text-gray-400">
-                <p>&copy; 2023 mambosawa.com. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Contact Seller Modal -->
-    <div id="contactModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-md w-full">
-            <div class="p-4 border-b">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-lg">Contact Seller</h3>
-                    <button id="closeContactModal" class="text-gray-500">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="p-4">
-                <div class="flex items-center mb-4">
-                    <img src="https://via.placeholder.com/50" alt="Seller" class="w-12 h-12 rounded-full mr-3">
+                <a href="#" class="flex items-center gap-3">
+                    <img src="images/icon.png" alt="MamboSawa logo" class="h-11 w-11 rounded-2xl object-cover ring-2 ring-primary/10">
                     <div>
-                        <h4 class="font-medium">John M.</h4>
-                        <p class="text-sm text-gray-500">Mikocheni, Dar es Salaam</p>
+                        <p class="text-xl font-extrabold tracking-tight text-primary">MamboSawa</p>
+                        <p class="text-xs text-slate-500">Trusted ecommerce for Tanzania</p>
                     </div>
+                </a>
+
+                <div class="hidden flex-1 lg:block">
+                    <label class="relative block">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input id="searchInput" type="search" placeholder="Search products, brands, or categories" class="w-full rounded-full border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+                    </label>
                 </div>
-                <div class="space-y-3">
-                    <button class="w-full flex items-center justify-center bg-green-600 text-white py-3 rounded-lg">
-                        <i class="fab fa-whatsapp mr-2 text-xl"></i>
-                        WhatsApp Seller
+
+                <nav class="hidden items-center gap-5 text-sm font-medium text-slate-600 lg:flex">
+                    <a href="#catalog" class="hover:text-primary">Shop</a>
+                    <a href="#deals" class="hover:text-primary">Deals</a>
+                    <a href="#categories" class="hover:text-primary">Categories</a>
+                    <a href="#checkout" class="hover:text-primary">Checkout</a>
+                </nav>
+
+                <div class="ml-auto flex items-center gap-2 sm:gap-3">
+                    <button id="wishlistButton" class="relative rounded-full border border-slate-200 p-3 text-slate-700 hover:border-primary hover:text-primary" aria-label="Wishlist">
+                        <i class="far fa-heart"></i>
+                        <span id="wishlistCount" class="absolute -right-1 -top-1 hidden min-w-5 rounded-full bg-primary px-1.5 py-0.5 text-center text-xs font-bold text-white">0</span>
                     </button>
-                    <button class="w-full flex items-center justify-center bg-blue-600 text-white py-3 rounded-lg">
-                        <i class="fas fa-phone mr-2"></i>
-                        Call Seller (0712 345 678)
+                    <button id="cartButton" class="relative rounded-full bg-secondary p-3 text-white hover:bg-slate-800" aria-label="Shopping cart">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span id="cartCount" class="absolute -right-1 -top-1 min-w-5 rounded-full bg-primary px-1.5 py-0.5 text-center text-xs font-bold text-white">0</span>
                     </button>
-                    <button class="w-full flex items-center justify-center bg-gray-100 text-gray-800 py-3 rounded-lg">
-                        <i class="fas fa-envelope mr-2"></i>
-                        Send SMS
-                    </button>
-                </div>
-                <div class="mt-4 text-sm text-gray-500">
-                    <p><i class="fas fa-info-circle mr-2 text-primary"></i> Always meet in a safe public place</p>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Auth Modal -->
-    <div id="authModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-lg max-w-md w-full">
-            <div class="p-4 border-b">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-lg">Sign In / Register</h3>
-                    <button id="closeAuthModal" class="text-gray-500">
+            <div class="px-4 pb-4 lg:hidden">
+                <label class="relative block">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input id="mobileSearchInput" type="search" placeholder="Search products, brands, or categories" class="w-full rounded-full border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20">
+                </label>
+            </div>
+        </header>
+
+        <aside id="mobileMenu" class="drawer-transition pointer-events-none fixed inset-0 z-50 bg-slate-950/35 opacity-0 lg:hidden">
+            <div class="drawer-transition h-full w-80 max-w-[85vw] -translate-x-full bg-white p-6 shadow-soft">
+                <div class="mb-8 flex items-center justify-between">
+                    <div>
+                        <p class="text-lg font-bold text-primary">MamboSawa</p>
+                        <p class="text-sm text-slate-500">Browse with confidence</p>
+                    </div>
+                    <button id="closeMenuButton" class="rounded-full border border-slate-200 p-2 text-slate-500" aria-label="Close menu">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-            </div>
-            <div class="p-4">
-                <div class="flex border-b mb-4">
-                    <button id="loginTab" class="px-4 py-2 font-medium border-b-2 border-primary text-primary">Sign In</button>
-                    <button id="registerTab" class="px-4 py-2 font-medium text-gray-500">Register</button>
-                </div>
-                
-                <!-- Login Form -->
-                <div id="loginForm">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">Email or Phone</label>
-                        <input type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 mb-2">Password</label>
-                        <input type="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                        <a href="#" class="text-sm text-primary mt-1 block">Forgot password?</a>
-                    </div>
-                    <button class="w-full bg-primary text-white py-3 rounded-lg font-medium mb-4">Sign In</button>
-                    <div class="text-center text-sm">
-                        <p class="text-gray-500">Don't have an account? <button id="switchToRegister" class="text-primary">Register</button></p>
-                    </div>
-                </div>
-                
-                <!-- Register Form -->
-                <div id="registerForm" class="hidden">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">Full Name</label>
-                        <input type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">Email</label>
-                        <input type="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">Phone Number</label>
-                        <input type="tel" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 mb-2">Password</label>
-                        <input type="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
-                    </div>
-                    <button class="w-full bg-primary text-white py-3 rounded-lg font-medium mb-4">Register</button>
-                    <div class="text-center text-sm">
-                        <p class="text-gray-500">Already have an account? <button id="switchToLogin" class="text-primary">Sign In</button></p>
-                    </div>
+                <nav class="space-y-3 text-base font-medium text-slate-700">
+                    <a href="#catalog" class="block rounded-2xl px-4 py-3 hover:bg-slate-100">Shop all products</a>
+                    <a href="#categories" class="block rounded-2xl px-4 py-3 hover:bg-slate-100">Categories</a>
+                    <a href="#deals" class="block rounded-2xl px-4 py-3 hover:bg-slate-100">Flash deals</a>
+                    <a href="#checkout" class="block rounded-2xl px-4 py-3 hover:bg-slate-100">Checkout</a>
+                </nav>
+                <div class="mt-8 rounded-3xl bg-sand p-5">
+                    <p class="text-sm font-semibold text-primary">Store perks</p>
+                    <ul class="mt-3 space-y-2 text-sm text-slate-600">
+                        <li><i class="fas fa-truck-fast mr-2 text-primary"></i>Nationwide delivery</li>
+                        <li><i class="fas fa-shield-heart mr-2 text-primary"></i>Secure checkout</li>
+                        <li><i class="fas fa-rotate-left mr-2 text-primary"></i>7-day returns on select items</li>
+                    </ul>
                 </div>
             </div>
-        </div>
+        </aside>
+
+        <main>
+            <section class="bg-gradient-to-br from-secondary via-slate-900 to-primary text-white">
+                <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:px-6 lg:py-20">
+                    <div>
+                        <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/90">
+                            <i class="fas fa-bolt text-accent"></i>
+                            Live inventory, local delivery, instant checkout
+                        </div>
+                        <h1 class="max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">Turn MamboSawa into a full ecommerce store customers can actually shop from.</h1>
+                        <p class="mt-5 max-w-2xl text-lg text-slate-200">Discover curated electronics, home upgrades, study essentials, and lifestyle favorites with searchable catalog browsing, wishlist management, cart totals, shipping, and checkout built in.</p>
+                        <div class="mt-8 flex flex-wrap gap-3">
+                            <a href="#catalog" class="rounded-full bg-white px-6 py-3 font-semibold text-secondary transition hover:bg-slate-100">Start shopping</a>
+                            <a href="#deals" class="rounded-full border border-white/30 px-6 py-3 font-semibold text-white transition hover:bg-white/10">See today's deals</a>
+                        </div>
+                        <div class="mt-10 grid gap-4 sm:grid-cols-3">
+                            <div class="rounded-3xl bg-white/10 p-4 backdrop-blur">
+                                <p class="text-2xl font-bold">24h</p>
+                                <p class="text-sm text-slate-200">Fast delivery in Dar es Salaam</p>
+                            </div>
+                            <div class="rounded-3xl bg-white/10 p-4 backdrop-blur">
+                                <p class="text-2xl font-bold">15k+</p>
+                                <p class="text-sm text-slate-200">Happy customers served</p>
+                            </div>
+                            <div class="rounded-3xl bg-white/10 p-4 backdrop-blur">
+                                <p class="text-2xl font-bold">4.9/5</p>
+                                <p class="text-sm text-slate-200">Average verified rating</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <article class="rounded-[2rem] bg-white p-5 text-slate-900 shadow-soft sm:col-span-2">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Featured bundle</p>
+                                    <h2 class="mt-2 text-2xl font-bold">Study + Tech starter pack</h2>
+                                    <p class="mt-2 text-sm text-slate-600">Laptop stand, wireless earbuds, and revision tools bundled for students and creators.</p>
+                                </div>
+                                <span class="rounded-full bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">Save 18%</span>
+                            </div>
+                            <div class="mt-5 grid gap-3 sm:grid-cols-3">
+                                <img src="images/iphone2.png" alt="Featured phone" class="h-40 w-full rounded-3xl object-cover">
+                                <img src="images/physics.png" alt="Featured book" class="h-40 w-full rounded-3xl object-cover">
+                                <img src="images/PS5.png" alt="Featured console" class="h-40 w-full rounded-3xl object-cover">
+                            </div>
+                        </article>
+                        <article class="rounded-[2rem] bg-white/10 p-5 backdrop-blur">
+                            <p class="text-sm text-white/80">Secure payments</p>
+                            <p class="mt-2 text-3xl font-bold">M-Pesa, cards, cash on delivery</p>
+                        </article>
+                        <article class="rounded-[2rem] bg-white/10 p-5 backdrop-blur">
+                            <p class="text-sm text-white/80">Store promise</p>
+                            <p class="mt-2 text-3xl font-bold">Authentic products with local support</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section id="categories" class="mx-auto max-w-7xl px-4 py-12 lg:px-6">
+                <div class="mb-6 flex items-end justify-between gap-4">
+                    <div>
+                        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Collections</p>
+                        <h2 class="text-3xl font-bold tracking-tight">Shop by category</h2>
+                    </div>
+                    <p class="max-w-xl text-sm text-slate-500">Browse the catalog your way with category shortcuts and inventory-aware filtering.</p>
+                </div>
+                <div id="categoryGrid" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
+            </section>
+
+            <section id="deals" class="bg-white py-12">
+                <div class="mx-auto max-w-7xl px-4 lg:px-6">
+                    <div class="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Limited-time offers</p>
+                            <h2 class="text-3xl font-bold tracking-tight">Best selling deals</h2>
+                        </div>
+                        <p class="max-w-2xl text-sm text-slate-500">These specials are calculated from real product data and update as filters change.</p>
+                    </div>
+                    <div id="featuredDeals" class="grid gap-5 lg:grid-cols-3"></div>
+                </div>
+            </section>
+
+            <section id="catalog" class="mx-auto max-w-7xl px-4 py-12 lg:px-6">
+                <div class="grid gap-8 xl:grid-cols-[290px_minmax(0,1fr)]">
+                    <aside class="rounded-[2rem] bg-white p-6 shadow-soft">
+                        <div class="mb-6 flex items-center justify-between">
+                            <div>
+                                <h2 class="text-xl font-bold">Filters</h2>
+                                <p class="text-sm text-slate-500">Refine the catalog instantly</p>
+                            </div>
+                            <button id="resetFilters" class="text-sm font-semibold text-primary">Reset</button>
+                        </div>
+                        <div class="space-y-6">
+                            <div>
+                                <label for="categoryFilter" class="mb-2 block text-sm font-semibold text-slate-700">Category</label>
+                                <select id="categoryFilter" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></select>
+                            </div>
+                            <div>
+                                <label for="sortFilter" class="mb-2 block text-sm font-semibold text-slate-700">Sort by</label>
+                                <select id="sortFilter" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                                    <option value="featured">Featured first</option>
+                                    <option value="priceAsc">Price: low to high</option>
+                                    <option value="priceDesc">Price: high to low</option>
+                                    <option value="rating">Best rated</option>
+                                    <option value="newest">Newest arrivals</option>
+                                </select>
+                            </div>
+                            <div>
+                                <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                                    <label for="priceRange">Max price</label>
+                                    <span id="priceRangeValue">TZS 0</span>
+                                </div>
+                                <input id="priceRange" type="range" min="15000" max="2200000" step="5000" class="w-full accent-primary">
+                            </div>
+                            <div class="space-y-3">
+                                <p class="text-sm font-semibold text-slate-700">Only show</p>
+                                <label class="flex items-center gap-3 text-sm text-slate-600"><input id="inStockOnly" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"> In-stock items</label>
+                                <label class="flex items-center gap-3 text-sm text-slate-600"><input id="dealOnly" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"> Active deals</label>
+                                <label class="flex items-center gap-3 text-sm text-slate-600"><input id="freeShippingOnly" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"> Free shipping</label>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <div class="space-y-6">
+                        <div class="rounded-[2rem] bg-white p-6 shadow-soft">
+                            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <h2 class="text-2xl font-bold">Product catalog</h2>
+                                    <p id="resultsSummary" class="text-sm text-slate-500">Loading products...</p>
+                                </div>
+                                <div class="flex flex-wrap gap-3">
+                                    <button id="filterDealBadge" class="rounded-full bg-sand px-4 py-2 text-sm font-semibold text-primary">Flash sale ready</button>
+                                    <button id="filterStockBadge" class="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600">Live stock tracking</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="productGrid" class="grid gap-5 md:grid-cols-2 2xl:grid-cols-3"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="checkout" class="bg-white py-12">
+                <div class="mx-auto grid max-w-7xl gap-8 px-4 lg:grid-cols-[1.1fr_0.9fr] lg:px-6">
+                    <div class="rounded-[2rem] border border-slate-200 p-6 shadow-soft">
+                        <div class="mb-6">
+                            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-primary">Checkout</p>
+                            <h2 class="text-3xl font-bold tracking-tight">Complete your order</h2>
+                            <p class="mt-2 text-sm text-slate-500">Cart totals update automatically. Orders are stored locally so this demo behaves like a functional storefront.</p>
+                        </div>
+                        <form id="checkoutForm" class="space-y-4">
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <label class="block text-sm font-medium text-slate-700">Full name
+                                    <input name="name" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" placeholder="Amina Hassan">
+                                </label>
+                                <label class="block text-sm font-medium text-slate-700">Phone number
+                                    <input name="phone" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" placeholder="0712 345 678">
+                                </label>
+                            </div>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <label class="block text-sm font-medium text-slate-700">Email
+                                    <input type="email" name="email" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" placeholder="amina@example.com">
+                                </label>
+                                <label class="block text-sm font-medium text-slate-700">City
+                                    <select name="city" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                                        <option value="">Select city</option>
+                                        <option>Dar es Salaam</option>
+                                        <option>Arusha</option>
+                                        <option>Moshi</option>
+                                        <option>Dodoma</option>
+                                        <option>Mwanza</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <label class="block text-sm font-medium text-slate-700">Delivery address
+                                <textarea name="address" required rows="3" class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" placeholder="Street, house number, landmark"></textarea>
+                            </label>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <label class="block text-sm font-medium text-slate-700">Payment method
+                                    <select name="payment" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                                        <option value="">Choose payment</option>
+                                        <option>M-Pesa</option>
+                                        <option>Airtel Money</option>
+                                        <option>Card</option>
+                                        <option>Cash on Delivery</option>
+                                    </select>
+                                </label>
+                                <label class="block text-sm font-medium text-slate-700">Delivery speed
+                                    <select name="delivery" required class="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                                        <option value="standard">Standard (TZS 8,000)</option>
+                                        <option value="express">Express (TZS 15,000)</option>
+                                        <option value="pickup">Store pickup (Free)</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <button type="submit" class="w-full rounded-full bg-primary px-6 py-4 text-base font-semibold text-white transition hover:bg-orange-600">Place order</button>
+                        </form>
+                        <div id="orderSuccess" class="mt-5 hidden rounded-3xl border border-accent/30 bg-accent/10 p-4 text-sm text-slate-700"></div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+                            <div class="mb-4 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold">Cart summary</h3>
+                                    <p class="text-sm text-slate-500">Adjust quantities before checkout</p>
+                                </div>
+                                <button id="clearCartButton" class="text-sm font-semibold text-primary">Clear cart</button>
+                            </div>
+                            <div id="cartItems" class="space-y-4"></div>
+                            <div id="emptyCartState" class="rounded-3xl border border-dashed border-slate-300 bg-white p-5 text-sm text-slate-500">Your cart is empty. Add products from the catalog to begin checkout.</div>
+                            <div class="mt-6 space-y-3 border-t border-slate-200 pt-4 text-sm">
+                                <div class="flex items-center justify-between"><span>Subtotal</span><span id="subtotalValue">TZS 0</span></div>
+                                <div class="flex items-center justify-between"><span>Shipping</span><span id="shippingValue">TZS 0</span></div>
+                                <div class="flex items-center justify-between"><span>VAT (18%)</span><span id="taxValue">TZS 0</span></div>
+                                <div class="flex items-center justify-between text-lg font-bold"><span>Total</span><span id="totalValue">TZS 0</span></div>
+                            </div>
+                        </div>
+
+                        <div class="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+                            <div class="mb-4 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xl font-bold">Recent orders</h3>
+                                    <p class="text-sm text-slate-500">Saved in local storage for this demo</p>
+                                </div>
+                            </div>
+                            <div id="orderHistory" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
+
+    <div id="toast" class="pointer-events-none fixed bottom-6 right-6 z-[60] hidden rounded-2xl bg-secondary px-5 py-4 text-sm font-medium text-white shadow-soft"></div>
 
     <script>
-        // Mobile Menu Toggle
+        const products = [
+            {
+                id: 1,
+                name: 'iPhone 14 Pro Max',
+                category: 'Electronics',
+                brand: 'Apple',
+                price: 2100000,
+                originalPrice: 2300000,
+                rating: 4.9,
+                reviews: 126,
+                stock: 6,
+                featured: true,
+                freeShipping: true,
+                image: 'images/iphone1.png',
+                badge: 'Hot',
+                description: 'Flagship smartphone with 256GB storage, premium cameras, and all-day battery.',
+                eta: 'Next day delivery in Dar es Salaam',
+                addedOn: '2026-03-18'
+            },
+            {
+                id: 2,
+                name: 'Premium Physics Revision Kit',
+                category: 'Books',
+                brand: 'TET Books',
+                price: 45000,
+                originalPrice: 60000,
+                rating: 4.8,
+                reviews: 88,
+                stock: 22,
+                featured: true,
+                freeShipping: false,
+                image: 'images/physics.png',
+                badge: 'Deal',
+                description: 'Exam-focused textbook bundle with summaries, practice questions, and answer keys.',
+                eta: 'Ships in 24 hours',
+                addedOn: '2026-03-20'
+            },
+            {
+                id: 3,
+                name: 'PlayStation 5 Console Bundle',
+                category: 'Gaming',
+                brand: 'Sony',
+                price: 1750000,
+                originalPrice: 1890000,
+                rating: 4.9,
+                reviews: 54,
+                stock: 4,
+                featured: true,
+                freeShipping: true,
+                image: 'images/PS5.png',
+                badge: 'Top Seller',
+                description: 'PS5 with dual controllers and curated hit games for immersive entertainment.',
+                eta: 'Free delivery within 2 days',
+                addedOn: '2026-03-17'
+            },
+            {
+                id: 4,
+                name: 'Scandinavian Leather Sofa',
+                category: 'Furniture',
+                brand: 'Urban Nest',
+                price: 620000,
+                originalPrice: 700000,
+                rating: 4.7,
+                reviews: 31,
+                stock: 3,
+                featured: false,
+                freeShipping: false,
+                image: 'images/sofa.png',
+                badge: 'New',
+                description: 'Modern 3-seater sofa with premium upholstery and reinforced wooden frame.',
+                eta: 'Scheduled delivery available',
+                addedOn: '2026-03-21'
+            },
+            {
+                id: 5,
+                name: 'Creator Phone Photography Kit',
+                category: 'Accessories',
+                brand: 'Mambo Gear',
+                price: 95000,
+                originalPrice: 125000,
+                rating: 4.6,
+                reviews: 63,
+                stock: 17,
+                featured: false,
+                freeShipping: true,
+                image: 'images/iphone2.png',
+                badge: 'Bundle',
+                description: 'Tripod, clip light, and wireless shutter remote for creators and small businesses.',
+                eta: 'Free shipping nationwide',
+                addedOn: '2026-03-16'
+            },
+            {
+                id: 6,
+                name: 'Academic Success Starter Pack',
+                category: 'Books',
+                brand: 'Campus Plus',
+                price: 78000,
+                originalPrice: 95000,
+                rating: 4.5,
+                reviews: 40,
+                stock: 14,
+                featured: false,
+                freeShipping: true,
+                image: 'images/physics2.png',
+                badge: 'Student Pick',
+                description: 'Study planner, revision cards, and subject notes designed to boost productivity.',
+                eta: 'Free delivery over TZS 50,000',
+                addedOn: '2026-03-22'
+            },
+            {
+                id: 7,
+                name: 'Minimalist Living Room Accent Chair',
+                category: 'Furniture',
+                brand: 'Urban Nest',
+                price: 280000,
+                originalPrice: 340000,
+                rating: 4.4,
+                reviews: 19,
+                stock: 8,
+                featured: false,
+                freeShipping: false,
+                image: 'images/leather sofa.jpeg',
+                badge: 'Save 18%',
+                description: 'Comfortable accent chair with supportive cushioning and statement style.',
+                eta: 'Delivery within 3 business days',
+                addedOn: '2026-03-19'
+            },
+            {
+                id: 8,
+                name: 'Smart Home Starter Camera',
+                category: 'Electronics',
+                brand: 'SecureLife',
+                price: 160000,
+                originalPrice: 190000,
+                rating: 4.3,
+                reviews: 27,
+                stock: 11,
+                featured: true,
+                freeShipping: true,
+                image: 'images/image.png',
+                badge: 'Trending',
+                description: 'Wi-Fi smart security camera with app alerts, two-way audio, and night vision.',
+                eta: 'Ships today',
+                addedOn: '2026-03-23'
+            }
+        ];
+
+        const categoryMeta = {
+            All: { icon: 'fa-store', description: 'Everything in the store' },
+            Electronics: { icon: 'fa-mobile-screen-button', description: 'Phones, gadgets, and home tech' },
+            Books: { icon: 'fa-book-open', description: 'Learning tools and study bundles' },
+            Gaming: { icon: 'fa-gamepad', description: 'Consoles, accessories, and fun' },
+            Furniture: { icon: 'fa-couch', description: 'Comfort-driven upgrades for your home' },
+            Accessories: { icon: 'fa-camera', description: 'Add-ons for work, study, and creativity' }
+        };
+
+        const currency = new Intl.NumberFormat('en-TZ', { style: 'currency', currency: 'TZS', maximumFractionDigits: 0 });
+        const storageKeys = {
+            cart: 'mambosawa_cart',
+            wishlist: 'mambosawa_wishlist',
+            orders: 'mambosawa_orders'
+        };
+
+        const state = {
+            search: '',
+            category: 'All',
+            sort: 'featured',
+            maxPrice: Math.max(...products.map(product => product.price)),
+            inStockOnly: false,
+            dealOnly: false,
+            freeShippingOnly: false,
+            cart: loadState(storageKeys.cart, []),
+            wishlist: loadState(storageKeys.wishlist, []),
+            orders: loadState(storageKeys.orders, [])
+        };
+
         const menuButton = document.getElementById('menuButton');
-        const closeMenuButton = document.getElementById('closeMenuButton');
         const mobileMenu = document.getElementById('mobileMenu');
-        
+        const closeMenuButton = document.getElementById('closeMenuButton');
+        const searchInput = document.getElementById('searchInput');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const sortFilter = document.getElementById('sortFilter');
+        const priceRange = document.getElementById('priceRange');
+        const priceRangeValue = document.getElementById('priceRangeValue');
+        const inStockOnly = document.getElementById('inStockOnly');
+        const dealOnly = document.getElementById('dealOnly');
+        const freeShippingOnly = document.getElementById('freeShippingOnly');
+        const resetFilters = document.getElementById('resetFilters');
+        const productGrid = document.getElementById('productGrid');
+        const categoryGrid = document.getElementById('categoryGrid');
+        const featuredDeals = document.getElementById('featuredDeals');
+        const resultsSummary = document.getElementById('resultsSummary');
+        const wishlistCount = document.getElementById('wishlistCount');
+        const cartCount = document.getElementById('cartCount');
+        const cartItems = document.getElementById('cartItems');
+        const emptyCartState = document.getElementById('emptyCartState');
+        const subtotalValue = document.getElementById('subtotalValue');
+        const shippingValue = document.getElementById('shippingValue');
+        const taxValue = document.getElementById('taxValue');
+        const totalValue = document.getElementById('totalValue');
+        const checkoutForm = document.getElementById('checkoutForm');
+        const orderSuccess = document.getElementById('orderSuccess');
+        const orderHistory = document.getElementById('orderHistory');
+        const clearCartButton = document.getElementById('clearCartButton');
+        const cartButton = document.getElementById('cartButton');
+        const wishlistButton = document.getElementById('wishlistButton');
+        const toast = document.getElementById('toast');
+
+        function loadState(key, fallback) {
+            try {
+                const value = localStorage.getItem(key);
+                return value ? JSON.parse(value) : fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function persistState(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function formatPrice(value) {
+            return currency.format(value).replace('TSh', 'TZS');
+        }
+
+        function getDealPercent(product) {
+            return Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
+        }
+
+        function getFilteredProducts() {
+            const search = state.search.trim().toLowerCase();
+            return products
+                .filter(product => state.category === 'All' || product.category === state.category)
+                .filter(product => !search || [product.name, product.category, product.brand, product.description].join(' ').toLowerCase().includes(search))
+                .filter(product => product.price <= state.maxPrice)
+                .filter(product => !state.inStockOnly || product.stock > 0)
+                .filter(product => !state.dealOnly || product.originalPrice > product.price)
+                .filter(product => !state.freeShippingOnly || product.freeShipping)
+                .sort((a, b) => {
+                    switch (state.sort) {
+                        case 'priceAsc': return a.price - b.price;
+                        case 'priceDesc': return b.price - a.price;
+                        case 'rating': return b.rating - a.rating;
+                        case 'newest': return new Date(b.addedOn) - new Date(a.addedOn);
+                        default:
+                            return Number(b.featured) - Number(a.featured) || b.rating - a.rating;
+                    }
+                });
+        }
+
+        function renderCategoryOptions() {
+            const categories = ['All', ...new Set(products.map(product => product.category))];
+            categoryFilter.innerHTML = categories.map(category => `<option value="${category}">${category}</option>`).join('');
+            categoryGrid.innerHTML = categories.map(category => {
+                const count = category === 'All' ? products.length : products.filter(product => product.category === category).length;
+                const meta = categoryMeta[category] || categoryMeta.All;
+                const active = state.category === category;
+                return `
+                    <button data-category-card="${category}" class="category-shortcut rounded-[2rem] border p-5 text-left transition ${active ? 'border-primary bg-sand shadow-soft' : 'border-slate-200 bg-white hover:border-primary/50'}">
+                        <div class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl ${active ? 'bg-primary text-white' : 'bg-slate-100 text-primary'}">
+                            <i class="fas ${meta.icon}"></i>
+                        </div>
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="font-bold">${category}</h3>
+                                <p class="mt-1 text-sm text-slate-500">${meta.description}</p>
+                            </div>
+                            <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">${count}</span>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            document.querySelectorAll('[data-category-card]').forEach(button => {
+                button.addEventListener('click', () => {
+                    state.category = button.dataset.categoryCard;
+                    categoryFilter.value = state.category;
+                    render();
+                    document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+        }
+
+        function renderDeals() {
+            const dealProducts = [...products]
+                .filter(product => product.originalPrice > product.price)
+                .sort((a, b) => getDealPercent(b) - getDealPercent(a))
+                .slice(0, 3);
+
+            featuredDeals.innerHTML = dealProducts.map(product => `
+                <article class="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-white">-${getDealPercent(product)}%</span>
+                        <span class="text-sm font-medium text-slate-500">${product.category}</span>
+                    </div>
+                    <img src="${product.image}" alt="${product.name}" class="mt-5 h-52 w-full rounded-3xl object-cover">
+                    <h3 class="mt-5 text-xl font-bold">${product.name}</h3>
+                    <p class="mt-2 text-sm text-slate-500">${product.description}</p>
+                    <div class="mt-5 flex items-end justify-between gap-4">
+                        <div>
+                            <p class="text-2xl font-bold text-secondary">${formatPrice(product.price)}</p>
+                            <p class="text-sm text-slate-400 line-through">${formatPrice(product.originalPrice)}</p>
+                        </div>
+                        <button data-add-cart="${product.id}" class="rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Add to cart</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function renderProducts() {
+            const filteredProducts = getFilteredProducts();
+            resultsSummary.textContent = `${filteredProducts.length} product${filteredProducts.length === 1 ? '' : 's'} found • max price ${formatPrice(state.maxPrice)}`;
+
+            if (!filteredProducts.length) {
+                productGrid.innerHTML = `
+                    <div class="rounded-[2rem] border border-dashed border-slate-300 bg-white p-10 text-center md:col-span-2 2xl:col-span-3">
+                        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-primary"><i class="fas fa-box-open text-2xl"></i></div>
+                        <h3 class="mt-4 text-xl font-bold">No products match those filters</h3>
+                        <p class="mt-2 text-sm text-slate-500">Try resetting your filters or broadening your search.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            productGrid.innerHTML = filteredProducts.map(product => {
+                const inWishlist = state.wishlist.includes(product.id);
+                const inCart = state.cart.find(item => item.id === product.id);
+                return `
+                    <article class="overflow-hidden rounded-[2rem] bg-white shadow-soft transition hover:-translate-y-1">
+                        <div class="relative">
+                            <img src="${product.image}" alt="${product.name}" class="h-64 w-full object-cover">
+                            <div class="absolute left-4 top-4 flex gap-2">
+                                <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-primary shadow">${product.badge}</span>
+                                ${product.freeShipping ? '<span class="rounded-full bg-accent/90 px-3 py-1 text-xs font-bold text-white shadow">Free shipping</span>' : ''}
+                            </div>
+                            <button data-wishlist="${product.id}" class="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full ${inWishlist ? 'bg-primary text-white' : 'bg-white/90 text-slate-700'} shadow">
+                                <i class="${inWishlist ? 'fas' : 'far'} fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="text-sm font-medium text-primary">${product.brand}</p>
+                                    <h3 class="mt-1 text-xl font-bold">${product.name}</h3>
+                                </div>
+                                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">${product.stock} in stock</span>
+                            </div>
+                            <p class="mt-3 line-clamp-2 text-sm text-slate-500">${product.description}</p>
+                            <div class="mt-4 flex items-center gap-2 text-sm text-amber-500">
+                                <i class="fas fa-star"></i><span class="font-semibold text-slate-700">${product.rating}</span><span class="text-slate-400">(${product.reviews} reviews)</span>
+                            </div>
+                            <div class="mt-2 text-sm text-slate-500"><i class="fas fa-truck-fast mr-2 text-primary"></i>${product.eta}</div>
+                            <div class="mt-5 flex items-end justify-between gap-4">
+                                <div>
+                                    <p class="text-2xl font-black text-secondary">${formatPrice(product.price)}</p>
+                                    <p class="text-sm text-slate-400 line-through">${formatPrice(product.originalPrice)}</p>
+                                </div>
+                                <button data-add-cart="${product.id}" class="rounded-full ${inCart ? 'bg-accent' : 'bg-secondary'} px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">${inCart ? 'Add more' : 'Add to cart'}</button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function cartDetailedItems() {
+            return state.cart.map(item => {
+                const product = products.find(product => product.id === item.id);
+                return { ...product, quantity: item.quantity };
+            }).filter(Boolean);
+        }
+
+        function getCartSummary(delivery = checkoutForm.elements.delivery?.value || 'standard') {
+            const items = cartDetailedItems();
+            const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const shipping = items.length === 0 ? 0 : delivery === 'pickup' ? 0 : delivery === 'express' ? 15000 : subtotal >= 250000 ? 0 : 8000;
+            const tax = Math.round(subtotal * 0.18);
+            const total = subtotal + shipping + tax;
+            return { items, subtotal, shipping, tax, total };
+        }
+
+        function renderCart() {
+            const summary = getCartSummary();
+            cartCount.textContent = state.cart.reduce((sum, item) => sum + item.quantity, 0);
+            wishlistCount.textContent = state.wishlist.length;
+            wishlistCount.classList.toggle('hidden', state.wishlist.length === 0);
+
+            emptyCartState.classList.toggle('hidden', summary.items.length > 0);
+            cartItems.innerHTML = summary.items.map(item => `
+                <div class="flex gap-4 rounded-3xl bg-white p-4 shadow-sm">
+                    <img src="${item.image}" alt="${item.name}" class="h-20 w-20 rounded-2xl object-cover">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h4 class="font-bold">${item.name}</h4>
+                                <p class="text-sm text-slate-500">${formatPrice(item.price)} each</p>
+                            </div>
+                            <button data-remove-cart="${item.id}" class="text-sm font-semibold text-rose-500">Remove</button>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-2 rounded-full bg-slate-100 p-1">
+                                <button data-qty="decrease:${item.id}" class="h-8 w-8 rounded-full bg-white text-slate-700">−</button>
+                                <span class="min-w-8 text-center text-sm font-semibold">${item.quantity}</span>
+                                <button data-qty="increase:${item.id}" class="h-8 w-8 rounded-full bg-white text-slate-700">+</button>
+                            </div>
+                            <p class="text-sm font-bold text-secondary">${formatPrice(item.price * item.quantity)}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            subtotalValue.textContent = formatPrice(summary.subtotal);
+            shippingValue.textContent = formatPrice(summary.shipping);
+            taxValue.textContent = formatPrice(summary.tax);
+            totalValue.textContent = formatPrice(summary.total);
+        }
+
+        function renderOrders() {
+            if (!state.orders.length) {
+                orderHistory.innerHTML = '<div class="rounded-3xl bg-slate-50 p-5 text-sm text-slate-500">No orders yet. Complete checkout to see recent purchases here.</div>';
+                return;
+            }
+
+            orderHistory.innerHTML = [...state.orders].reverse().slice(0, 4).map(order => `
+                <article class="rounded-3xl bg-slate-50 p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="font-bold text-secondary">${order.id}</p>
+                            <p class="text-sm text-slate-500">${order.customer.name} • ${order.customer.city}</p>
+                        </div>
+                        <span class="rounded-full bg-accent/10 px-3 py-1 text-xs font-bold text-accent">${order.payment}</span>
+                    </div>
+                    <p class="mt-3 text-sm text-slate-600">${order.items.map(item => `${item.quantity}× ${item.name}`).join(', ')}</p>
+                    <div class="mt-3 flex items-center justify-between text-sm">
+                        <span class="text-slate-500">${new Date(order.createdAt).toLocaleString('en-TZ')}</span>
+                        <span class="font-bold">${formatPrice(order.total)}</span>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function saveCart() { persistState(storageKeys.cart, state.cart); }
+        function saveWishlist() { persistState(storageKeys.wishlist, state.wishlist); }
+        function saveOrders() { persistState(storageKeys.orders, state.orders); }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            clearTimeout(showToast.timeout);
+            showToast.timeout = setTimeout(() => toast.classList.add('hidden'), 2200);
+        }
+
+        function addToCart(productId) {
+            const product = products.find(item => item.id === productId);
+            if (!product || product.stock === 0) return;
+            const existing = state.cart.find(item => item.id === productId);
+            const currentQuantity = existing?.quantity || 0;
+            if (currentQuantity >= product.stock) {
+                showToast('Maximum stock quantity already in cart.');
+                return;
+            }
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                state.cart.push({ id: productId, quantity: 1 });
+            }
+            saveCart();
+            render();
+            showToast(`${product.name} added to cart.`);
+        }
+
+        function toggleWishlist(productId) {
+            const product = products.find(item => item.id === productId);
+            if (state.wishlist.includes(productId)) {
+                state.wishlist = state.wishlist.filter(id => id !== productId);
+                showToast(`${product.name} removed from wishlist.`);
+            } else {
+                state.wishlist.push(productId);
+                showToast(`${product.name} saved to wishlist.`);
+            }
+            saveWishlist();
+            render();
+        }
+
+        function updateQuantity(productId, direction) {
+            const entry = state.cart.find(item => item.id === productId);
+            if (!entry) return;
+            const product = products.find(item => item.id === productId);
+            if (direction === 'increase' && entry.quantity < product.stock) entry.quantity += 1;
+            if (direction === 'decrease') entry.quantity -= 1;
+            state.cart = state.cart.filter(item => item.quantity > 0);
+            saveCart();
+            renderCart();
+            renderProducts();
+        }
+
+        function removeFromCart(productId) {
+            state.cart = state.cart.filter(item => item.id !== productId);
+            saveCart();
+            render();
+            showToast('Item removed from cart.');
+        }
+
+        function clearCart() {
+            state.cart = [];
+            saveCart();
+            render();
+            showToast('Cart cleared.');
+        }
+
+        function syncSearch(value) {
+            state.search = value;
+            searchInput.value = value;
+            mobileSearchInput.value = value;
+            renderProducts();
+        }
+
+        function render() {
+            renderCategoryOptions();
+            renderDeals();
+            renderProducts();
+            renderCart();
+            renderOrders();
+            attachDynamicEvents();
+        }
+
+        function attachDynamicEvents() {
+            document.querySelectorAll('[data-add-cart]').forEach(button => {
+                button.addEventListener('click', () => addToCart(Number(button.dataset.addCart)));
+            });
+            document.querySelectorAll('[data-wishlist]').forEach(button => {
+                button.addEventListener('click', () => toggleWishlist(Number(button.dataset.wishlist)));
+            });
+            document.querySelectorAll('[data-remove-cart]').forEach(button => {
+                button.addEventListener('click', () => removeFromCart(Number(button.dataset.removeCart)));
+            });
+            document.querySelectorAll('[data-qty]').forEach(button => {
+                const [direction, productId] = button.dataset.qty.split(':');
+                button.addEventListener('click', () => updateQuantity(Number(productId), direction));
+            });
+        }
+
         menuButton.addEventListener('click', () => {
-            mobileMenu.classList.remove('closed');
+            mobileMenu.classList.remove('pointer-events-none', 'opacity-0');
+            mobileMenu.firstElementChild.classList.remove('-translate-x-full');
             document.body.style.overflow = 'hidden';
         });
-        
-        closeMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.add('closed');
+
+        function closeMenu() {
+            mobileMenu.classList.add('pointer-events-none', 'opacity-0');
+            mobileMenu.firstElementChild.classList.add('-translate-x-full');
             document.body.style.overflow = '';
+        }
+
+        closeMenuButton.addEventListener('click', closeMenu);
+        mobileMenu.addEventListener('click', event => {
+            if (event.target === mobileMenu) closeMenu();
         });
 
-        // Mobile Search Toggle
-        const searchButton = document.querySelector('header button:nth-child(2)');
-        const mobileSearch = document.getElementById('mobileSearch');
-        
-        searchButton.addEventListener('click', () => {
-            mobileSearch.classList.toggle('hidden');
+        searchInput.addEventListener('input', event => syncSearch(event.target.value));
+        mobileSearchInput.addEventListener('input', event => syncSearch(event.target.value));
+
+        categoryFilter.addEventListener('change', event => {
+            state.category = event.target.value;
+            render();
+        });
+        sortFilter.addEventListener('change', event => {
+            state.sort = event.target.value;
+            renderProducts();
+            attachDynamicEvents();
+        });
+        priceRange.addEventListener('input', event => {
+            state.maxPrice = Number(event.target.value);
+            priceRangeValue.textContent = formatPrice(state.maxPrice);
+            renderProducts();
+            attachDynamicEvents();
+        });
+        inStockOnly.addEventListener('change', event => { state.inStockOnly = event.target.checked; renderProducts(); attachDynamicEvents(); });
+        dealOnly.addEventListener('change', event => { state.dealOnly = event.target.checked; renderProducts(); attachDynamicEvents(); });
+        freeShippingOnly.addEventListener('change', event => { state.freeShippingOnly = event.target.checked; renderProducts(); attachDynamicEvents(); });
+        resetFilters.addEventListener('click', () => {
+            state.search = '';
+            state.category = 'All';
+            state.sort = 'featured';
+            state.maxPrice = Math.max(...products.map(product => product.price));
+            state.inStockOnly = false;
+            state.dealOnly = false;
+            state.freeShippingOnly = false;
+            searchInput.value = '';
+            mobileSearchInput.value = '';
+            categoryFilter.value = 'All';
+            sortFilter.value = 'featured';
+            priceRange.value = state.maxPrice;
+            priceRangeValue.textContent = formatPrice(state.maxPrice);
+            inStockOnly.checked = false;
+            dealOnly.checked = false;
+            freeShippingOnly.checked = false;
+            render();
         });
 
-        // Contact Modal
-        const contactButtons = document.querySelectorAll('.listing-card button:last-child');
-        const contactModal = document.getElementById('contactModal');
-        const closeContactModal = document.getElementById('closeContactModal');
-        
-        contactButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                contactModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            });
-        });
-        
-        closeContactModal.addEventListener('click', () => {
-            contactModal.classList.add('hidden');
-            document.body.style.overflow = '';
-        });
-
-        // Auth Modal
-        const authButton = document.getElementById('authButton');
-        const authModal = document.getElementById('authModal');
-        const closeAuthModal = document.getElementById('closeAuthModal');
-        const loginTab = document.getElementById('loginTab');
-        const registerTab = document.getElementById('registerTab');
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const switchToRegister = document.getElementById('switchToRegister');
-        const switchToLogin = document.getElementById('switchToLogin');
-        
-        authButton.addEventListener('click', () => {
-            authModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        });
-        
-        closeAuthModal.addEventListener('click', () => {
-            authModal.classList.add('hidden');
-            document.body.style.overflow = '';
-        });
-        
-        loginTab.addEventListener('click', () => {
-            loginTab.classList.add('border-b-2', 'border-primary', 'text-primary');
-            loginTab.classList.remove('text-gray-500');
-            registerTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
-            registerTab.classList.add('text-gray-500');
-            loginForm.classList.remove('hidden');
-            registerForm.classList.add('hidden');
-        });
-        
-        registerTab.addEventListener('click', () => {
-            registerTab.classList.add('border-b-2', 'border-primary', 'text-primary');
-            registerTab.classList.remove('text-gray-500');
-            loginTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
-            loginTab.classList.add('text-gray-500');
-            registerForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-        });
-        
-        switchToRegister.addEventListener('click', () => {
-            registerTab.click();
-        });
-        
-        switchToLogin.addEventListener('click', () => {
-            loginTab.click();
+        checkoutForm.addEventListener('change', () => renderCart());
+        clearCartButton.addEventListener('click', clearCart);
+        cartButton.addEventListener('click', () => document.getElementById('checkout').scrollIntoView({ behavior: 'smooth' }));
+        wishlistButton.addEventListener('click', () => {
+            state.category = 'All';
+            searchInput.value = '';
+            mobileSearchInput.value = '';
+            state.search = '';
+            render();
+            const favoriteProducts = products.filter(product => state.wishlist.includes(product.id));
+            if (favoriteProducts.length) {
+                showToast(`Wishlist has ${favoriteProducts.length} saved item${favoriteProducts.length === 1 ? '' : 's'}.`);
+            } else {
+                showToast('Your wishlist is empty.');
+            }
+            document.getElementById('catalog').scrollIntoView({ behavior: 'smooth' });
         });
 
-        // Language Toggle
-        const languageToggle = document.getElementById('languageToggle');
-        let currentLanguage = 'EN';
-        
-        languageToggle.addEventListener('click', () => {
-            currentLanguage = currentLanguage === 'EN' ? 'SW' : 'EN';
-            languageToggle.textContent = currentLanguage === 'EN' ? 'EN/SW' : 'SW/EN';
-            // In a real app, you would update the page content here
+        checkoutForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const summary = getCartSummary(checkoutForm.elements.delivery.value);
+            if (!summary.items.length) {
+                showToast('Add products to your cart before placing an order.');
+                return;
+            }
+            const formData = new FormData(checkoutForm);
+            const order = {
+                id: `MS-${Date.now().toString().slice(-6)}`,
+                createdAt: new Date().toISOString(),
+                customer: Object.fromEntries(formData.entries()),
+                payment: formData.get('payment'),
+                delivery: formData.get('delivery'),
+                items: summary.items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity })),
+                total: summary.total
+            };
+            state.orders.push(order);
+            saveOrders();
+            state.cart = [];
+            saveCart();
+            checkoutForm.reset();
+            orderSuccess.classList.remove('hidden');
+            orderSuccess.innerHTML = `<strong>Order ${order.id} confirmed.</strong> Thanks ${order.customer.name}! Your total is ${formatPrice(order.total)} and we'll contact you at ${order.customer.phone}.`;
+            render();
+            showToast('Order placed successfully.');
         });
 
-        // PWA Install Prompt
-        let deferredPrompt;
-        const installPrompt = document.getElementById('installPrompt');
-        const installButton = document.getElementById('installButton');
-        const cancelInstall = document.getElementById('cancelInstall');
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            // Show the install prompt
-            installPrompt.classList.remove('hidden');
-        });
-        
-        installButton.addEventListener('click', async () => {
-            // Hide the install prompt
-            installPrompt.classList.add('hidden');
-            // Show the install prompt
-            deferredPrompt.prompt();
-            // Wait for the user to respond to the prompt
-            const { outcome } = await deferredPrompt.userChoice;
-            // Optionally, send analytics event with outcome of user choice
-            console.log(`User response to the install prompt: ${outcome}`);
-            // We've used the prompt, and can't use it again, throw it away
-            deferredPrompt = null;
-        });
-        
-        cancelInstall.addEventListener('click', () => {
-            installPrompt.classList.add('hidden');
-        });
-        
-        window.addEventListener('appinstalled', () => {
-            // Hide the install prompt
-            installPrompt.classList.add('hidden');
-            // Clear the deferredPrompt so it can be garbage collected
-            deferredPrompt = null;
-            // Optionally, send analytics event to indicate successful install
-            console.log('PWA was installed');
-        });
+        priceRange.max = String(Math.max(...products.map(product => product.price)));
+        priceRange.value = state.maxPrice;
+        priceRangeValue.textContent = formatPrice(state.maxPrice);
+        categoryFilter.value = state.category;
+        sortFilter.value = state.sort;
+        inStockOnly.checked = state.inStockOnly;
+        dealOnly.checked = state.dealOnly;
+        freeShippingOnly.checked = state.freeShippingOnly;
+        searchInput.value = state.search;
+        mobileSearchInput.value = state.search;
 
-        // Image Gallery Navigation
-        document.querySelectorAll('.image-gallery').forEach(gallery => {
-            let isDown = false;
-            let startX;
-            let scrollLeft;
-
-            gallery.addEventListener('mousedown', (e) => {
-                isDown = true;
-                startX = e.pageX - gallery.offsetLeft;
-                scrollLeft = gallery.scrollLeft;
-            });
-
-            gallery.addEventListener('mouseleave', () => {
-                isDown = false;
-            });
-
-            gallery.addEventListener('mouseup', () => {
-                isDown = false;
-            });
-
-            gallery.addEventListener('mousemove', (e) => {
-                if(!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - gallery.offsetLeft;
-                const walk = (x - startX) * 2;
-                gallery.scrollLeft = scrollLeft - walk;
-            });
-        });
+        render();
     </script>
 </body>
 </html>
